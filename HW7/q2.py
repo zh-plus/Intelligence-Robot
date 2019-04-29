@@ -15,12 +15,10 @@ if float('{}.{}'.format(info[0], info[1])) < 3.7:
 
     warnings.warn('this code is written by python 3.7, scipy 1.1.0')
 
-SAMPLES = int(1e3)
-print('Using sample times: {:e}'.format(SAMPLES))
-
 w, h = 100, 70
 exp_point = [80, 35]
-landmarks = [(0, 0), (50, 0), (50, 70)]
+exp_orientation = pi / 6
+landmarks = [(0, 0), (50, 0), (100, 0), (0, 70), (50, 70), (100, 70)]
 
 
 def gaussian_circle(x, y, landmark, mean_distance, sigma=1):
@@ -50,6 +48,11 @@ def hit(landmark, sigma):
     return lambda x, y: mu * f(x, y)
 
 
+def get_orientation_p(orientation, sigma=0.2):
+    diff = np.abs(orientation - exp_orientation)
+    return np.exp(-np.power(diff, 2.) / (2 * np.power(sigma, 2.))) / (np.sqrt(2 * pi) * sigma)
+
+
 # def draw(f):
 #     x = np.linspace(0, w, SAMPLES)
 #     y = np.linspace(0, h, SAMPLES)
@@ -71,15 +74,12 @@ def hit(landmark, sigma):
 #     plt.show()
 
 
-def do_hw1():
-    pass
-    # hit_fns = [hit(l, 4) for l in landmarks]
-    # hit_sum = lambda x, y: reduce(lambda a, b: a * b, [f(x, y) for f in hit_fns]) / len(hit_fns)
-    #
-    # draw(hit_sum)
+def draw_arrow(x, y, orientation):
+    dst = (x + cos(orientation) * 3, y + sin(orientation) * 3.5)
+    plt.annotate('', xy=dst, xytext=(x, y), arrowprops=dict(arrowstyle="->"))
 
 
-def draw_object(position, orientation=0, radius=4):
+def draw_object(position, orientation, radius=4):
     fig = plt.gcf()
     ax = fig.gca()
     circle_landmark = plt.Circle(position, radius, color='r', fill=False, clip_on=False)
@@ -92,22 +92,29 @@ def draw_object(position, orientation=0, radius=4):
 
 
 def first_sample(f):
-    X = np.linspace(0, 100, 200)
-    Y = np.linspace(0, 70, 200)
+    X = np.linspace(0, 100, 300)
+    Y = np.linspace(0, 70, 300)
     points = np.array([(a, b) for a in X for b in Y])
+    orientations = np.linspace(0, 2 * pi, len(points))
+    np.random.shuffle(orientations)
+    indices = np.arange(len(points))
 
     points_weight = np.array(list(map(lambda x: f(*x), points))).flatten()
     points_weight = points_weight / points_weight.sum()
 
-    indices = np.arange(len(points))
-    sampled_indices = np.random.choice(indices, size=len(points) // 100, p=points_weight)
+    sampled_indices = np.random.choice(indices, size=len(points) // 80, p=points_weight)
+
+    orientations_weight = np.array(list(map(get_orientation_p, orientations))).flatten()[sampled_indices]
+    orientations_weight = orientations_weight / orientations_weight.sum()
+    sampled_indices = np.random.choice(sampled_indices, size=len(points) // 80, p=orientations_weight)
 
     sampled_points = points[sampled_indices]
+    sampled_orientations = orientations[sampled_indices]
 
-    return sampled_points
+    return sampled_points, sampled_orientations
 
 
-def second_sample(points, f):
+def second_sample(points, orientations, f):
     points_weight = np.array(list(map(lambda x: f(*x), points))).flatten()
     points_weight = points_weight / points_weight.sum()
 
@@ -115,13 +122,14 @@ def second_sample(points, f):
     sampled_indices = np.random.choice(indices, size=len(points) // 10, p=points_weight)
 
     sampled_points = points[sampled_indices]
+    sampled_orientations = orientations[sampled_indices]
 
-    return sampled_points
+    return sampled_points, sampled_orientations
 
 
-def draw(points):
-    X, Y = zip(*points)
-    plt.scatter(X, Y, s=5)
+def draw(points, orientations):
+    for i in range(len(points)):
+        draw_arrow(*points[i], orientations[i])
 
     fig = plt.gcf()
     ax = fig.gca()
@@ -132,7 +140,7 @@ def draw(points):
         ax.add_artist(circle_landmark)
 
     # draw object
-    draw_object(exp_point)
+    draw_object(exp_point, exp_orientation)
 
     # draw circle
     for l in landmarks:
@@ -152,14 +160,25 @@ def draw(points):
 
 def do_hw():
     f1 = hit(landmarks[0], 4)
-    p1 = first_sample(f1)
-    draw(p1)
+    p1, o1 = first_sample(f1)
+    draw(p1, o1)
 
     hit_fns = [hit(l, 4) for l in landmarks]
     f2 = lambda x, y: reduce(lambda a, b: a * b, [f(x, y) for f in hit_fns[1:]]) / len(hit_fns)
-    p2 = second_sample(p1, f2)
-    draw(p2)
+    p2, o2 = second_sample(p1, o1, f2)
+    draw(p2, o2)
 
 
 if __name__ == "__main__":
     do_hw()
+    # draw_arrow((0, 0), -pi / 6)
+    # draw_object((50, 50), pi / 3)
+    #
+    # # change figure size
+    # plt.xlim(-10, 100)
+    # plt.ylim(-10, 70)
+    # plt.show()
+
+    # w = 0.5
+    # if random.random() < 0.5:
+    #
