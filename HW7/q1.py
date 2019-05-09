@@ -71,14 +71,6 @@ def hit(landmark, sigma):
 #     plt.show()
 
 
-def do_hw1():
-    pass
-    # hit_fns = [hit(l, 4) for l in landmarks]
-    # hit_sum = lambda x, y: reduce(lambda a, b: a * b, [f(x, y) for f in hit_fns]) / len(hit_fns)
-    #
-    # draw(hit_sum)
-
-
 def draw_object(position, orientation=0, radius=4):
     fig = plt.gcf()
     ax = fig.gca()

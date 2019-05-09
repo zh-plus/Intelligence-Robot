@@ -53,27 +53,6 @@ def get_orientation_p(orientation, sigma=0.2):
     return np.exp(-np.power(diff, 2.) / (2 * np.power(sigma, 2.))) / (np.sqrt(2 * pi) * sigma)
 
 
-# def draw(f):
-#     x = np.linspace(0, w, SAMPLES)
-#     y = np.linspace(0, h, SAMPLES)
-#     X, Y = np.meshgrid(x, y)
-#     Y = Y[::-1]  # change y direction
-#     Z = np.array(list(map(f, X, Y)))
-#
-#     fig = plt.figure()
-#     plt.imshow(Z, extent=[0, w, 0, h])
-#
-#     # draw landmarks
-#     p_X, p_Y = zip(*landmarks)
-#     plt.scatter(p_X, p_Y, color='red')
-#
-#     # add axis label
-#     plt.xlabel('x')
-#     plt.ylabel('y')
-#
-#     plt.show()
-
-
 def draw_arrow(x, y, orientation):
     dst = (x + cos(orientation) * 3, y + sin(orientation) * 3.5)
     plt.annotate('', xy=dst, xytext=(x, y), arrowprops=dict(arrowstyle="->"))
@@ -171,14 +150,3 @@ def do_hw():
 
 if __name__ == "__main__":
     do_hw()
-    # draw_arrow((0, 0), -pi / 6)
-    # draw_object((50, 50), pi / 3)
-    #
-    # # change figure size
-    # plt.xlim(-10, 100)
-    # plt.ylim(-10, 70)
-    # plt.show()
-
-    # w = 0.5
-    # if random.random() < 0.5:
-    #
